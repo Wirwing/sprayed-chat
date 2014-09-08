@@ -1,5 +1,7 @@
 package com.sprayed.chat
 
+import com.sprayed.chat.domain._
+
 import akka.actor.Actor
 import spray.routing._
 import spray.http._
@@ -11,7 +13,7 @@ import spray.client.pipelining._
 
 // we don't implement our route structure directly in the service actor because
 // we want to be able to test it independently, without having to spin up an actor
-class ChatServiceActor extends Actor with ChatService {
+class ChatServiceActor extends Actor with ChatService  with ProductionDB{
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
@@ -24,20 +26,32 @@ class ChatServiceActor extends Actor with ChatService {
 }
 
 // this trait defines our service behavior independently from the service actor
-trait ChatService extends HttpService with StaticResources with TwirlPages with LoginService{
+trait ChatService extends HttpService with StaticResources with TwirlPages with LoginService { this: DBConfig =>
 
   val myRoute = staticResources ~ twirlPages ~ loginRoutes
 
 }
 
-trait LoginService extends HttpService {
+trait LoginService extends HttpService { this: DBConfig =>
 
   val loginRoutes = path("login"){
     post{
       formFields('username, 'password) { (username, password) =>
-        println(username)
-        println(password)
+
+        //val user = m.findUser(username, password)
+        //println(user.get)
+
         complete("chido")
+      }
+    } ~
+    get {
+      path("chido"){
+
+        val user = m.findUser("irving", "password")
+        println(user.get)
+
+       complete("chido")
+
       }
     }
   }
