@@ -4,6 +4,8 @@ import akka.actor.Actor
 import spray.routing._
 import spray.http._
 import MediaTypes._
+import shapeless._
+
 
 // we don't implement our route structure directly in the service actor because
 // we want to be able to test it independently, without having to spin up an actor
@@ -20,20 +22,37 @@ class ChatServiceActor extends Actor with ChatService {
 }
 
 // this trait defines our service behavior independently from the service actor
-trait ChatService extends HttpService {
+trait ChatService extends HttpService with StaticResources with TwirlPages{
 
-  val myRoute =
-    path("") {
-      get {
-        respondWithMediaType(`text/html`) { // XML is marshalled to `text/xml` by default, so we simply override here
-          complete {
-            <html>
-              <body>
-                <h1>Say hello to <i>spray-routing</i> on <i>spray-can</i>!</h1>
-              </body>
-            </html>
-          }
+  val myRoute = staticResources ~ twirlPages
+
+}
+
+// Trait for serving static resources
+// Sends 404 for 'favicon.icon' requests and serves static resources in 'bootstrap' folder.
+trait StaticResources extends HttpService {
+
+  val staticResources = pathPrefix("js") { get { getFromResourceDirectory("js") } } ~ 
+                pathPrefix("css") { get { getFromResourceDirectory("css") } }
+
+}
+
+trait TwirlPages extends HttpService {
+
+  val twirlPages = {
+    get {
+       path("index") { 
+        respondWithMediaType(`text/html`) {
+          complete (html.simple.render("Irving").toString )
         }
-      }
+       } ~
+       path("proxy.html") {
+        respondWithMediaType(`text/html`) { // XML is marshalled to `text/xml` by default, so we simply override here
+          complete (html.proxy.render.toString)
+        }
+        
+       }
     }
+  }
+
 }
