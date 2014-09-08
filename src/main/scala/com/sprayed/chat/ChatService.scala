@@ -6,6 +6,8 @@ import spray.http._
 import MediaTypes._
 import shapeless._
 
+import akka.event.Logging
+import spray.client.pipelining._
 
 // we don't implement our route structure directly in the service actor because
 // we want to be able to test it independently, without having to spin up an actor
@@ -22,9 +24,23 @@ class ChatServiceActor extends Actor with ChatService {
 }
 
 // this trait defines our service behavior independently from the service actor
-trait ChatService extends HttpService with StaticResources with TwirlPages{
+trait ChatService extends HttpService with StaticResources with TwirlPages with LoginService{
 
-  val myRoute = staticResources ~ twirlPages
+  val myRoute = staticResources ~ twirlPages ~ loginRoutes
+
+}
+
+trait LoginService extends HttpService {
+
+  val loginRoutes = path("login"){
+    post{
+      formFields('username, 'password) { (username, password) =>
+        println(username)
+        println(password)
+        complete("chido")
+      }
+    }
+  }
 
 }
 

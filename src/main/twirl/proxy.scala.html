@@ -1,10 +1,15 @@
 <html>
   <head>
-    <script type="text/javascript">
-    parent.formReady();
-    </script>
   </head>
   <body>
-    <form method="post">
+    <form id="hiddenForm" method="post" >
+      <input type="text" name="username"/>
+      <input type="text" name="password"/>
+    </form>
+
+    <script type="text/javascript">
+      parent.formReady();
+    </script>
+
   </body>
 </html>
